@@ -1,4 +1,4 @@
-# 3d-perception-from-scratch
+# 3d Vision Systems
 
 A curated, from-scratch implementation of classical and modern 3D perception algorithms used in robotics, autonomous systems, and computer vision.
 
