@@ -38,9 +38,9 @@ class SE3Transform:
                 raise ValueError("Translation vector t must be 3x1.")
             self.t = t
 
-        self.H = self.__to_homogenous_matrix()
+        self.H = self._to_homogenous_matrix()
 
-    def __to_homogenous_matrix(self):
+    def _to_homogenous_matrix(self):
         '''Converts the rotation and translation to a 4x4 homogenous matrix.'''
         H = np.eye(4)
         H[:3, :3] = self.R
