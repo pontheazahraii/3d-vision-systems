@@ -11,10 +11,12 @@ class SE3Transform:
         Initialize an SE(3) transformation.
 
         Parameters:
-            R (np.ndarray, optional): 
-                3x3 rotation matrix (SO(3)). If None, an identity matrix is used.
-            t (np.ndarray, optional): 
-                3x1 translation vector. If None, a zero vector is used.
+            R (np.ndarray, optional):
+                3x3 rotation matrix (SO(3)).
+                Default is None.
+            t (np.ndarray, optional):
+                3x1 translation vector.
+                Default is None.
 
         Raises:
             ValueError:
@@ -52,7 +54,7 @@ class SE3Transform:
 
         Parameters:
             H (np.ndarray):
-                4x4 homogenous matrix. 
+                4x4 homogenous matrix.
 
         Raises:
             ValueError:
@@ -75,7 +77,7 @@ class SE3Transform:
         R_inv = self.R.T
         t_inv = -np.dot(R_inv, self.t)
         return SE3Transform(R_inv, t_inv)
-    
+
     def transform_point(self, point):
         '''
         Transform a 3D point (represented by a 3x1 vector).
