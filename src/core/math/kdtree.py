@@ -9,9 +9,9 @@ class KDNode:
         Initialize the node for the KD-Tree.
 
         Parameters:
-            point (Tuple[float, ...] or List[float]):
+            point (Tuple[float, ...]):
                 An array representing the coordinates in k-dimensional space.
-                Must be indexable (e.g., tuple, list) and have length `k`.
+                Must be indexable (e.g., tuple) and have length `k`.
             k (int):
                 The dimensionality of the space the KD-Tree operates in.
                 Defines how many coordinate axes the point has.
@@ -34,7 +34,7 @@ class KDTree:
         Initializes and builds the KD-Tree.
 
         Parameters:
-            points(List[Tuple[float, ...]] or List[List[float]]):
+            points(List[Tuple[float, ...]]):
                 A list of k-dimensional points.
 
         Raise:
@@ -75,7 +75,7 @@ class KDTree:
         Finds the nearest neighbor to the target point.
 
         Parameters:
-            target (Tuple[float, ...] or List[float]):
+            target (Tuple[float, ...]):
                 The query point.
 
         Returns:
@@ -91,7 +91,7 @@ class KDTree:
         Find the k nearest neighbors to the target point.
 
         Parameters:
-            target(Tuple[float, ...] or List[float]):
+            target(Tuple[float, ...]):
                 The query point.
             k (int):
                 Number of nearest neighbors to return.
