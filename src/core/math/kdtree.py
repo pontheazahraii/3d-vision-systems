@@ -9,9 +9,9 @@ class KDNode:
         Initialize the node for the KD-Tree.
 
         Parameters:
-            point (Tuple[float, ...] or List[float]):
+            point (Tuple[float, ...]):
                 An array representing the coordinates in k-dimensional space.
-                Must be indexable (e.g., tuple, list) and have length `k`.
+                Must be indexable (e.g., tuple) and have length `k`.
             k (int):
                 The dimensionality of the space the KD-Tree operates in.
                 Defines how many coordinate axes the point has.
@@ -34,7 +34,7 @@ class KDTree:
         Initializes and builds the KD-Tree.
 
         Parameters:
-            points(List[Tuple[float, ...]] or List[List[float]]):
+            points(List[Tuple[float, ...]]):
                 A list of k-dimensional points.
 
         Raise:
@@ -75,27 +75,54 @@ class KDTree:
         Finds the nearest neighbor to the target point.
 
         Parameters:
-            target (Tuple[float, ...] or List[float]):
+            target (Tuple[float, ...]):
                 The query point.
 
         Returns:
             KDNode:
                 Node containing the nearest point.
         '''
-        return self._nearest(self.root, target, depth=0, best=None)
+        best = []
+        self._search(self.root, target, k=1, best=best, depth=0)
+        return best[0][1]  # return KDNode only
 
-    def _nearest(self, node, target, depth, best):
-        '''Recursive helper for nearest neighbor search.'''
+    def k_nearest(self, target, k):
+        '''
+        Find the k nearest neighbors to the target point.
+
+        Parameters:
+            target(Tuple[float, ...]):
+                The query point.
+            k (int):
+                Number of nearest neighbors to return.
+
+        Returns:
+            List[Tuple[float, KDNode]]:
+                A list of (distance_squared, KDNode) tuples sorted by increasing distance.
+        '''
+        best = []  # list of (dist2, KDNode)
+        self._search(self.root, target, k, best, depth=0)
+        return sorted(best, key=lambda x: x[0])
+
+    def _search(self, node, target, k, best, depth):
+        '''Unified search for 1-NN and k-NN.'''
         if node is None:
-            return best
+            return
 
         axis = depth % self.k
+        dist2 = self._distance_squared(target, node.point)
 
-        # Update best if current node is closer
-        if best is None or self._distance_squared(target, node.point) < self._distance_squared(target, best.point):
-            best = node
+        # Insert/update best list
+        if len(best) < k:
+            best.append((dist2, node))
+        else:
+            # Replace worst (largest dist2) if this one is better
+            worst_dist, worst_node = max(best, key=lambda x: x[0])
+            if dist2 < worst_dist:
+                best.remove((worst_dist, worst_node))
+                best.append((dist2, node))
 
-        # Pick branch based on splitting axis
+        # Choose direction
         if target[axis] < node.point[axis]:
             next_branch = node.left
             other_branch = node.right
@@ -104,13 +131,18 @@ class KDTree:
             other_branch = node.left
 
         # Search primary branch
-        best = self._nearest(next_branch, target, depth+1, best)
+        self._search(next_branch, target, k, best, depth+1)
 
-        # Check if we need to explore the other branch
-        if abs(target[axis] - node.point[axis])**2 < self._distance_squared(target, best.point):
-            best = self._nearest(other_branch, target, depth+1, best)
+        # Check splitting plane for potential other-branch search
+        if len(best) < k:
+            must_search_other = True
+        else:
+            plane_dist2 = (target[axis] - node.point[axis])**2
+            worst_dist, _ = max(best, key=lambda x: x[0])
+            must_search_other = plane_dist2 < worst_dist
 
-        return best
+        if must_search_other:
+            self._search(other_branch, target, k, best, depth+1)
 
 
 if __name__ == '__main__':
@@ -121,3 +153,8 @@ if __name__ == '__main__':
     nearest = tree.nearest(target_point)
 
     print("Nearest neighbor:", nearest.point)
+
+    k = 5
+    neighbors = tree.k_nearest(target_point, k)
+    for dist2, node in neighbors:
+        print(f'Point: {node.point}, Dist2: {dist2}')
