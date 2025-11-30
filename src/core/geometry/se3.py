@@ -12,9 +12,11 @@ class SE3Transform:
 
         Parameters:
             R (np.ndarray, optional):
-                3x3 rotation matrix (SO(3)). If None, an identity matrix is used.
+                3x3 rotation matrix (SO(3)).
+                Default is None.
             t (np.ndarray, optional):
-                3x1 translation vector. If None, a zero vector is used.
+                3x1 translation vector.
+                Default is None.
 
         Raises:
             ValueError:
