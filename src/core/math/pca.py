@@ -32,14 +32,46 @@ class NormalEstimator:
             List[np.ndarray]:
                 A list of normal vectors (unit length).
         '''
+        return [self._estimate_normal(p) for p in points]
+
+    def estimate_curvatures(self, points):
+        '''
+        Compute curvature for each points.
+
+        Parameters:
+            points (List(Tuple[float])):
+                Points to estimate curvature for.
+
+        Returns:
+            List[float]:
+                Curvature values.
+        '''
+        return [self._estimate_curvature(p) for p in points]
+
+    def estimate_all(self, points):
+        '''
+        Estimate both normals and curvature for each point.
+
+        Parameters:
+            points (List(Tuple[float])):
+                Points to estimate normals and curvature for.
+
+        Returns:
+            Tuple[List[np.ndarray], List[float]]:
+                (normals, curvatures)
+        '''
         normals = []
+        curvatures = []
+
         for p in points:
-            normals.append(self._estimate_normal(p))
-        return normals
+            normal, curvature = self._estimate_normal_and_curvature(p)
+            normals.append(normal)
+            curvatures.append(curvature)
 
-    def _estimate_normal(self, point):
-        '''Estimates the normal at a single point using PCA on neighbors'''
+        return normals, curvatures
 
+    def _pca(self, point):
+        '''Runs PCA on the KNN neighborhood of a point.'''
         # 1. Get k nearest neighbors from the KDTree
         neighbors = self.tree.k_nearest(point, self.k_neighbors)
 
@@ -57,14 +89,45 @@ class NormalEstimator:
 
         # 5. Eigen decomposition
         eigenvalues, eigenvectors = np.linalg.eigh(cov)
+        return eigenvalues, eigenvectors
 
-        # 6. Normal = eigenvector of the smallest eigenvalue
+    def _estimate_normal(self, point):
+        '''Estimates the normal at a single point using PCA on neighbors'''
+        eigenvalues, eigenvectors = self._pca(point)
+
+        # Normal = eigenvector of the smallest eigenvalue
         idx = np.argmin(eigenvalues)
         normal = eigenvectors[:, idx]
 
-        # 7. Normalize
+        # Normalize
         normal = normal / np.linalg.norm(normal)
         return normal
+
+    def _estimate_curvature(self, point):
+        '''
+        Estimate curvature using PCA eigenvalues.
+
+        curvature = λ_min / (λ0 + λ1 + λ2)
+        '''
+        eigenvalues, _ = self._pca(point)
+        l0, l1, l2 = eigenvalues
+        curvature = l0 / (l0 + l1, + l2)
+        return curvature
+
+    def _estimate_normal_and_curvature(self, point):
+        '''Single PCA call that returns both normal and curvature'''
+        eigenvalues, eigenvectors = self._pca(point)
+
+        # Normal
+        idx = np.argmin(eigenvalues)
+        normal = eigenvectors[:, idx]
+        normal = normal / np.linalg.norm(normal)
+
+        # Curvature
+        l0, l1, l2 = eigenvalues
+        curvature = l0 / (l0 + l1 + l2)
+
+        return normal, curvature
 
 
 if __name__ == '__main__':
@@ -72,7 +135,7 @@ if __name__ == '__main__':
     tree = KDTree(points)
 
     ne = NormalEstimator(tree, k_neighbors=2)
-    normals = ne.estimate_normals(points)
+    normals, curvature = ne.estimate_all(points)
 
-    for p, n in zip(points, normals):
-        print(f'Point: {p}, Normal: {n}')
+    for p, n, c in zip(points, normals, curvature):
+        print(f'Point: {p}, Normal: {n}, Curvature: {c}')
