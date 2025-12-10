@@ -144,6 +144,47 @@ class KDTree:
         if must_search_other:
             self._search(other_branch, target, k, best, depth+1)
 
+    def radius_search(self, target, radius):
+        '''
+        Find all neighbors within a given radius of a target point.
+
+        Parameters:
+            target (Tuple[float, ...]):
+                The query point.
+            radius (float):
+                Maximum distance for neighbor inclusion.
+
+        Returns:
+            List[Tuple[float, KDNode]]:
+                A list of (distance_squared, KDNode) tuples sorted by increasing distance.
+        '''
+        results = []
+        radius2 = radius**2
+        self._radius_search(self.root, target, radius2, results, depth=0)
+        return sorted(results, key=lambda x: x[0])
+
+    def _radius_search(self, node, target, radius2, results, depth):
+        if node is None:
+            return
+        
+        axis = depth % self.k
+        dist2 = self._distance_squared(target, node.point)
+
+        # Check if this node is within the search radius
+        if dist2 <= radius2:
+            results.append((dist2, node))
+        
+        # Decide traversal order 
+        diff = target[axis] - node.point[axis]
+        near, far = (node.left, node.right) if diff < 0 else (node.right, node.left)
+
+        # Search the nearer side first 
+        self._radius_search(near, target, radius2, results, depth+1)
+
+        # Check whether the hypersphere intersects the splitting plane
+        if diff**2 <= radius2:
+            self._radius_search(far, target, radius2, results, depth+1)
+
 
 if __name__ == '__main__':
     points = [(3, 6), (17, 15), (13, 15), (6, 12), (9, 1), (2, 7)]
@@ -151,10 +192,16 @@ if __name__ == '__main__':
 
     target_point = (20, 17)
     nearest = tree.nearest(target_point)
-
-    print("Nearest neighbor:", nearest.point)
+    print(f'Nearest neighbor: {nearest.point}')
 
     k = 5
-    neighbors = tree.k_nearest(target_point, k)
-    for dist2, node in neighbors:
+    k_neighbors = tree.k_nearest(target_point, k)
+    print(f'\nK Nearest Neighbors (k={k}):')
+    for dist2, node in k_neighbors:
+        print(f'Point: {node.point}, Dist2: {dist2}')
+
+    r = 10.0
+    r_neighbors = tree.radius_search(target_point, r)
+    print(f'\nNeighbors within radius (r={r})')
+    for dist2, node in r_neighbors:
         print(f'Point: {node.point}, Dist2: {dist2}')
