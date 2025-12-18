@@ -25,7 +25,7 @@ def pca(points: np.ndarray):
                 mean:         (3,) centroid of neighborhood
     '''
     if points.shape[0] < 3:
-        raise ValueError("PCA requires at least 3 points for a valid covariance matrix.")
+        raise ValueError('PCA requires at least 3 points for a valid covariance matrix.')
 
     # Mean
     mean = np.mean(points, axis=0)

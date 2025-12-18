@@ -1,11 +1,35 @@
 '''
-An SE(3) transformation represents a rigid body transformation in 3D space combining both rotation and translation. It is typically represented as a 4x4 homogenous transformation matrix.
+An SE(3) transformation represents a rigid body transformation 
+n 3D space combining both rotation and translation. It is 
+typically represented as a 4x4 homogenous transformation matrix.
 '''
 
 import numpy as np
 
 
 class SE3Transform:
+    '''
+    Represents an SE(3) rigid body transformation in 3D space.
+
+    An SE(3) transformation combines a 3D rotation (SO(3)) and a 3D
+    translation into a single rigid body transform. Internally, the
+    transformation is represented using a 4x4 homogeneous transformation
+    matrix.
+
+    This class supports:
+        - Composition of transformations
+        - Inversion
+        - Point transformation
+        - Construction from homogeneous matrices
+
+    Attributes:
+        R (np.ndarray):
+            3x3 rotation matrix.
+        t (np.ndarray):
+            3x1 translation vector.
+        H (np.ndarray):
+            4x4 homogeneous transformation matrix.
+    '''
     def __init__(self, R=None, t=None):
         '''
         Initialize an SE(3) transformation.
@@ -28,14 +52,14 @@ class SE3Transform:
             self.R = np.eye(3)
         else:
             if R.shape != (3, 3):
-                raise ValueError("Rotation matrix R must be 3x3.")
+                raise ValueError('Rotation matrix R must be 3x3.')
             self.R = R
 
         if t is None:
             self.t = np.zeros((3, 1))
         else:
             if t.shape != (3, 1):
-                raise ValueError("Translation vector t must be 3x1.")
+                raise ValueError('Translation vector t must be 3x1.')
             self.t = t
 
         self.H = self._to_homogenous_matrix()
@@ -95,7 +119,7 @@ class SE3Transform:
                 If `point` is not 3x1.
         '''
         if point.shape != (3, 1):
-            raise ValueError("Point must be a 3x1 vector.")
+            raise ValueError('Point must be a 3x1 vector.')
 
         return np.dot(self.R, point) + self.t
 

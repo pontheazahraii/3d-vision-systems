@@ -1,82 +1,102 @@
 '''
-Surface normal and curvature estimation for point clouds.
+Surface normal estimation for point clouds.
 
-Uses PCA on local neighborhoods queried from a KD-Tree.
+This module estimates per-point surface normals using PCA on local
+neighborhoods queried from a spatial index. The normal direction is
+defined as the eigenvector corresponding to the smallest eigenvalue
+of the local covariance matrix.
+
+Normal orientation is made consistent by flipping the normal to
+face toward the query point relative to the neighborhood mean.
 '''
 
 import numpy as np
-from core.math.pca import pca
-from core.spatial.kdtree import KDTree
+from features.local_pca import LocalPCA
 
 
 class NormalEstimator:
-    def __init__(self, kdtree: KDTree, k_neighbors: int = 20):
+    '''
+    Estimates surface normals for point clouds using local PCA.
+
+    This class interprets local PCA results as surface orientation.
+    It does not perform neighborhood search or PCA directly; instead,
+    it relies on a LocalPCA object for those computations.
+    '''
+
+    def __init__(self, local_pca: LocalPCA):
         '''
-        Estimate surface normals and curvature using PCA.
+        Initialize the normal estimator.
 
-        Parameters:
-            kdtree (KDTree): Point spatial index.
-            k_neighbors (int): Number of neighbors for PCA.
+        Args:
+            local_pca (LocalPCA):
+                Shared local PCA computation object.
         '''
-        self.tree = kdtree
-        self.k_neighbors = k_neighbors
+        self.local_pca = local_pca
 
-    def estimate_normals(self, points):
-        '''Compute normals for a list of points.'''
-        return [self._estimate_normal(p) for p in points]
-
-    def estimate_curvatures(self, points):
-        '''Compute curvature values for a list of points.'''
-        return [self._estimate_curvature(p) for p in points]
-
-    def estimate_all(self, points):
-        '''Compute normals + curvature for all points.'''
-        normals, curvatures = [], []
-        for p in points:
-            normal, curv = self._estimate_normal_and_curvature(p)
-            normals.append(normal)
-            curvatures.append(curv)
-        return normals, curvatures
-
-    def _estimate_normal(self, point):
-        normal, _ = self._estimate_normal_and_curvature(point)
-        return normal
-
-    def _estimate_curvature(self, point):
-        _, curvature = self._estimate_normal_and_curvature(point)
-        return curvature
-
-    def _estimate_normal_and_curvature(self, point):
+    def estimate(self, point):
         '''
-        Runs PCA once and returns both the normal and curvature.
+        Estimate the surface normal at a single point.
+
+        The normal is defined as the eigenvector associated with the
+        smallest eigenvalue of the local covariance matrix. The normal
+        is flipped to ensure consistent orientation relative to the
+        neighborhood mean.
+
+        Args:
+            point (np.ndarray):
+                3D point of shape (3,).
+
+        Returns:
+            np.ndarray:
+                Unit surface normal vector of shape (3,).
         '''
-        neighbors = self.tree.k_nearest(point, self.k_neighbors)
-        neighbor_points = np.array([node.point for (_, node) in neighbors])
+        _, eigenvectors, mean = self.local_pca.compute(point)
 
-        eigenvalues, eigenvectors, mean = pca(neighbor_points)
-
-        # Normal = eigenvector of smallest eigenvalue
+        # Eigenvector of smallest eigenvalue
         normal = eigenvectors[:, 0]
         normal /= np.linalg.norm(normal)
 
-        # Flip normal toward point for consistency
+        # Flip normal for consistent orientation
         view_dir = point - mean
         if np.dot(normal, view_dir) > 0:
             normal = -normal
 
-        # Curvature: smallest eigenvalue / trace
-        curvature = eigenvalues[0] / (eigenvalues.sum() + 1e-12)
+        return normal
 
-        return normal, curvature
+    def estimate_batch(self, points):
+        '''
+        Estimate surface normals for multiple points.
+
+        Args:
+            points (Iterable[np.ndarray]):
+                Iterable of 3D points.
+
+        Returns:
+            List[np.ndarray]:
+                List of unit surface normal vectors.
+        '''
+        return [self.estimate(p) for p in points]
 
 
 if __name__ == '__main__':
-    # Minimal usage test
-    points = [(3, 6, 1), (17, 15, 2), (13, 15, 3), (5, 17, 6)]
+    import numpy as np
+    from core.spatial.kdtree import KDTree
+    from features.local_pca import LocalPCA
+
+    # Simple synthetic point set (rough plane)
+    points = np.array([
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [1.0, 1.0, 0.0],
+        [0.5, 0.5, 0.0],
+    ])
+
     tree = KDTree(points)
-    ne = NormalEstimator(tree, k_neighbors=2)
+    local_pca = LocalPCA(tree, k_neighbors=4)
+    normal_estimator = NormalEstimator(local_pca)
 
-    normals, curvatures = ne.estimate_all(points)
-
-    for p, n, c in zip(points, normals, curvatures):
-        print(f'Point: {p}, Normal: {n}, Curvature: {c:.4f}')
+    print('Normal estimation test:')
+    for p in points:
+        n = normal_estimator.estimate(p)
+        print(f'Point {p} → Normal {n}')
