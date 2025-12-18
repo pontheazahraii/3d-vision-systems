@@ -1,9 +1,31 @@
 '''
-A KD-Tree (K-Dimensional Tree) is a space-partitioning data structure used to organize points in a k-dimensional space, facilitating efficient search operations like nearest neighbor queries
+A KD-Tree (K-Dimensional Tree) is a space-partitioning data structure used 
+to organize points in a k-dimensional space, facilitating efficient search 
+operations like nearest neighbor queries
 '''
 
 
 class KDNode:
+    '''
+    Node representation for a KD-Tree.
+
+    A KDNode stores a single point in k-dimensional space and references
+    to its left and right child nodes. Each node implicitly represents
+    a splitting hyperplane orthogonal to one coordinate axis, determined
+    by the node's depth in the tree.
+
+    Attributes:
+        point (Tuple[float, ...]):
+            The k-dimensional point stored at this node.
+        k (int):
+            The splitting axis index for this node.
+        left (KDNode or None):
+            Left child node containing points with smaller coordinate
+            values along the splitting axis.
+        right (KDNode or None):
+            Right child node containing points with larger or equal
+            coordinate values along the splitting axis.
+    '''
     def __init__(self, point, k, left=None, right=None):
         '''
         Initialize the node for the KD-Tree.
@@ -29,6 +51,27 @@ class KDNode:
 
 
 class KDTree:
+    '''
+    K-Dimensional Tree for efficient spatial queries.
+
+    This class implements a KD-Tree data structure for organizing points
+    in k-dimensional space. It supports efficient nearest-neighbor,
+    k-nearest-neighbor, and radius-based search queries.
+
+    The tree is constructed recursively by alternating splitting axes
+    and partitioning points around median values to maintain balance.
+
+    Typical use cases include:
+        - Nearest neighbor search
+        - Local neighborhood queries for PCA
+        - Spatial indexing for point cloud processing
+
+    Attributes:
+        k (int):
+            Dimensionality of the space.
+        root (KDNode):
+            Root node of the KD-Tree.
+    '''
     def __init__(self, points):
         '''
         Initializes and builds the KD-Tree.
