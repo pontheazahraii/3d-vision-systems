@@ -11,8 +11,8 @@ is performed on the resulting local point set.
 '''
 
 import numpy as np
-from core.math.pca import pca
-from core.spatial.kdtree import KDTree
+from perception_systems.core.math.pca import pca
+from perception_systems.core.spatial.kdtree import KDTree
 
 
 class LocalPCA:

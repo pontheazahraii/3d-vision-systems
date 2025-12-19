@@ -11,7 +11,7 @@ neighborhood queries or PCA themselves.
 '''
 
 import numpy as np
-from features.local_pca import LocalPCA
+from perception_systems.features.local_pca import LocalPCA
 
 
 class SurfaceMetrics:
@@ -57,7 +57,7 @@ class SurfaceMetrics:
                         'anisotropy': float
                     }
         '''
-        eigenvalues, _ = self.local_pca.compute(point)
+        eigenvalues, _, _ = self.local_pca.compute(point)
         l0, l1, l2 = eigenvalues + 1e-12  # numerical stability
 
         curvature = l0 / (l0 + l1 + l2)
@@ -90,7 +90,7 @@ class SurfaceMetrics:
 
 
 if __name__ == '__main__':
-    from core.spatial.kdtree import KDTree
+    from perception_systems.core.spatial.kdtree import KDTree
 
     # Synthetic planar cloud (z = 0)
     points = np.array([

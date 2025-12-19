@@ -84,17 +84,18 @@ class KDTree:
             ValueError:
                 If point list is empty.
         '''
-        if not points:
-            raise ValueError('Points list cannot be empty.')
+        if points is None or len(points) == 0:
+            raise ValueError("Points list cannot be empty.")
 
         self.k = len(points[0])
         self.root = self._build(points)
 
     def _build(self, points, depth=0):
         '''Recursively builds the KD-Tree.'''
-        if not points:
+        if points is None or len(points) == 0:
             return None
 
+        points = list(points)
         axis = depth % self.k
 
         # Sort points along current axis
