@@ -7,7 +7,7 @@ degree of surface variation and is useful for surface classification,
 segmentation, and feature detection.
 '''
 
-from features.local_pca import LocalPCA
+from perception_systems.features.local_pca import LocalPCA
 
 
 class CurvatureEstimator:
@@ -65,8 +65,8 @@ class CurvatureEstimator:
 
 if __name__ == '__main__':
     import numpy as np
-    from core.spatial.kdtree import KDTree
-    from features.local_pca import LocalPCA
+    from perception_systems.core.spatial.kdtree import KDTree
+    from perception_systems.features.local_pca import LocalPCA
 
     # Same planar point set for curvature sanity check
     points = np.array([

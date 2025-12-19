@@ -11,7 +11,7 @@ face toward the query point relative to the neighborhood mean.
 '''
 
 import numpy as np
-from features.local_pca import LocalPCA
+from perception_systems.features.local_pca import LocalPCA
 
 
 class NormalEstimator:
@@ -80,8 +80,8 @@ class NormalEstimator:
 
 if __name__ == '__main__':
     import numpy as np
-    from core.spatial.kdtree import KDTree
-    from features.local_pca import LocalPCA
+    from perception_systems.core.spatial.kdtree import KDTree
+    from perception_systems.features.local_pca import LocalPCA
 
     # Simple synthetic point set (rough plane)
     points = np.array([

@@ -10,7 +10,7 @@ segmentation or region growing.
 '''
 
 from enum import Enum
-from features.surface_metrics import SurfaceMetrics
+from perception_systems.features.surface_metrics import SurfaceMetrics
 
 class SurfaceType(Enum):
     '''
@@ -101,8 +101,8 @@ class SurfaceClassifier:
 
 if __name__ == "__main__":
     import numpy as np
-    from core.spatial.kdtree import KDTree
-    from features.local_pca import LocalPCA
+    from perception_systems.core.spatial.kdtree import KDTree
+    from perception_systems.features.local_pca import LocalPCA
 
     # Synthetic mixed-structure cloud
     plane = np.array([
